@@ -127,6 +127,9 @@ def instr_double(instr, arg)
       when "hl"
         res = [ 0x22 ]
         res += double_hex(nr)
+      when "sp"
+        res = [ 0xed, 0x73 ]
+        res += double_hex(nr)
       end
     end
   elsif arg.start_with?("(") && arg.end_with?(")") # address in arg
@@ -141,6 +144,9 @@ def instr_double(instr, arg)
       res += double_hex(nr)
     when "ld hl"
       res = [ 0x2a ]
+      res += double_hex(nr)
+    when "ld sp"
+      res = [ 0xed, 0x7b ]
       res += double_hex(nr)
     end
   else # no addressing
@@ -164,6 +170,9 @@ def instr_double(instr, arg)
       res = [ 0x21 ]
       res += double_hex(nr)
     when "ld l" : [ 0x2e, single_hex(nr) ]
+    when "ld sp"
+      res = [ 0x31 ]
+      res += double_hex(nr)
     when "sbc a" : [ 0xde, single_hex(nr) ]
     when "sub" : [ 0xd6, single_hex(nr) ]
     end
@@ -182,6 +191,7 @@ def instr_single(instr)
     when "adc hl,bc" : [ 0xed, 0x4a ]
     when "adc hl,de" : [ 0xed, 0x5a ]
     when "adc hl,hl" : [ 0xed, 0x6a ]
+    when "adc hl,sp" : [ 0xed, 0x7a ]
     when "add a,a" : 0x87
     when "add a,b" : 0x80
     when "add a,c" : 0x81
@@ -192,6 +202,7 @@ def instr_single(instr)
     when "add hl,bc" : 0x09
     when "add hl,de" : 0x19
     when "add hl,hl" : 0x29
+    when "add hl,sp" : 0x39
     when "ccf" : 0x3f
     when "dec a" : 0x3d
     when "dec b" : 0x05
@@ -203,6 +214,7 @@ def instr_single(instr)
     when "dec h" : 0x25
     when "dec hl" : 0x2b
     when "dec l" : 0x2d
+    when "dec sp" : 0x3b
     when "inc a" : 0x3c
     when "inc b" : 0x04
     when "inc bc" : 0x03
@@ -213,6 +225,7 @@ def instr_single(instr)
     when "inc h" : 0x24
     when "inc hl" : 0x23
     when "inc l" : 0x2c
+    when "inc sp" : 0x33
     when "ld (bc),a" : 0x02
     when "ld (de),a" : 0x12
     when "ld (hl),a" : 0x77
@@ -280,7 +293,20 @@ def instr_single(instr)
     when "ld l,e" : 0x6b
     when "ld l,h" : 0x6d
     when "ld l,l" : 0x6e
+    when "ld sp,hl" : 0xf9
+    when "ldi" : [ 0xed, 0xa0 ]
+    when "ldir" : [ 0xed, 0xb0 ]
+    when "ldd" : [ 0xed, 0xa8 ]
+    when "lddr" : [ 0xed, 0xb8 ]
     when "ret" : 0xc9
+    when "pop af" : 0xf1
+    when "pop bc" : 0xc1
+    when "pop de" : 0xd1
+    when "pop hl" : 0xe1
+    when "push af" : 0xf5
+    when "push bc" : 0xc5
+    when "push de" : 0xd5
+    when "push hl" : 0xe5
     when "sbc a,a" : 0x9f
     when "sbc a,b" : 0x98
     when "sbc a,c" : 0x99
@@ -290,6 +316,7 @@ def instr_single(instr)
     when "sbc hl,bc" : [ 0xed, 0x42 ]
     when "sbc hl,de" : [ 0xed, 0x52 ]
     when "sbc hl,hl" : [ 0xed, 0x62 ]
+    when "sbc hl,sp" : [ 0xed, 0x72 ]
     when "sbc l" : 0x9d
     when "scf" : 0x37
     when "sub a" : 0x97
