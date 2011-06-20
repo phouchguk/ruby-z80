@@ -112,6 +112,8 @@ def instr_double(instr, arg)
       res = [ 0x21 ]
       res += double_hex(nr)
     when "ld l" : [ 0x2e, single_hex(nr) ]
+    when "sbc a" : [ 0xde, single_hex(nr) ]
+    when "sub" : [ 0xd6, single_hex(nr) ]
     end
   end
 end
@@ -138,6 +140,27 @@ def instr_single(instr)
     when "add hl,bc" : 0x09
     when "add hl,de" : 0x19
     when "add hl,hl" : 0x29
+    when "ccf" : 0x3f
+    when "dec a" : 0x3d
+    when "dec b" : 0x05
+    when "dec bc" : 0x0b
+    when "dec c" : 0x0d
+    when "dec d" : 0x15
+    when "dec de" : 0x1b
+    when "dec e" : 0x1d
+    when "dec h" : 0x25
+    when "dec hl" : 0x2b
+    when "dec l" : 0x2d
+    when "inc a" : 0x3c
+    when "inc b" : 0x04
+    when "inc bc" : 0x03
+    when "inc c" : 0x0c
+    when "inc d" : 0x14
+    when "inc de" : 0x13
+    when "inc e" : 0x1c
+    when "inc h" : 0x24
+    when "inc hl" : 0x23
+    when "inc l" : 0x2c
     when "ld a,a" : 0x7f
     when "ld a,b" : 0x78
     when "ld a,c" : 0x79
@@ -188,6 +211,24 @@ def instr_single(instr)
     when "ld l,h" : 0x6d
     when "ld l,l" : 0x6e
     when "ret" : 0xc9
+    when "sbc a,a" : 0x9f
+    when "sbc a,b" : 0x98
+    when "sbc a,c" : 0x99
+    when "sbc a,c" : 0x9a
+    when "sbc a,e" : 0x9b
+    when "sbc a,h" : 0x9c
+    when "sbc hl,bc" : [ 0xed, 0x42 ]
+    when "sbc hl,de" : [ 0xed, 0x52 ]
+    when "sbc hl,hl" : [ 0xed, 0x62 ]
+    when "sbc l" : 0x9d
+    when "scf" : 0x37
+    when "sub a" : 0x97
+    when "sub b" : 0x90
+    when "sub c" : 0x91
+    when "sub d" : 0x92
+    when "sub e" : 0x93
+    when "sub h" : 0x94
+    when "sub l" : 0x95
   else
     throw "Unrecognised instruction #{instr}"
   end
