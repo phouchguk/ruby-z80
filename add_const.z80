@@ -1,0 +1,9 @@
+ld a,l
+add a,3a
+ld l,a
+ld a,h
+adc a,00
+ld h,a
+ld b,h
+ld c,l
+ret

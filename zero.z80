@@ -1,0 +1,6 @@
+ld bc,0
+ld hl,0
+add hl,bc
+ld b,h
+ld c,l
+ret

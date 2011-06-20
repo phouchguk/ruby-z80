@@ -1,0 +1,3 @@
+ld hl,0032
+ld (5c6c),hl
+ret

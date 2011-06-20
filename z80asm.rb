@@ -46,7 +46,7 @@ def main
         res = instr_single(parts[0])
       when 2
         # is the second part an argument or part of a single instruction i.e. LD A,B
-        if ["a", "b", "bc", "c", "d", "de", "e", "h", "hl", "l"].include?(parts[1])
+        if !include_addr?(parts[0]) && ["a", "b", "bc", "c", "d", "de", "e", "h", "hl", "l"].include?(parts[1])
           res = instr_single(parts.join(",")) # remove whitespace
         else
           res = instr_double(parts[0], parts[1])
@@ -81,17 +81,55 @@ def hex_or_int(str)
     str[2, str.length - 1].to_i(16)
   elsif str.end_with?("h")
     str[0, str.length - 1].to_i(16)
-  elsif str.index(/[abcdef]/)
+  elsif str.index(/[abcdef]/) || str.start_with?("0")
     str.to_i(16)
   else
     str.to_i
   end
 end
 
+def include_addr?(str)
+  str.index("(") && str.index(")")
+end
+
 def instr_double(instr, arg)
-  if arg.start_with?("[") && arg.end_with?("]")
-    throw "can't deal with mem addressing yet"
-  else
+  instr_op = instr.index("(") # checking for address in instruction
+  instr_cp = instr.index(")")
+
+  if instr_op && instr_cp # address in instruction
+    if instr.start_with?("ld")
+      # extract the address
+      nr = hex_or_int(instr[instr_op + 1, instr_cp - instr_op - 1])
+      case arg
+      when "a"
+        res = [ 0x3a ]
+        res += double_hex(nr)
+      when "bc"
+        res = [ 0xed, 0x43 ]
+        res += double_hex(nr)
+      when "de"
+        res = [ 0xed, 0x53 ]
+        res += double_hex(nr)
+      when "hl"
+        res = [ 0x22 ]
+        res += double_hex(nr)
+      end
+    end
+  elsif arg.start_with?("(") && arg.end_with?(")") # address in arg
+    nr = hex_or_int(arg[1, arg.length - 2])
+    case instr
+    when "ld a" : [ 0x3a, double_hex(nr) ]
+    when "ld bc"
+      res = [ 0xed, 0x4b ]
+      res += double_hex(nr)
+    when "ld de"
+      res = [ 0xed, 0x5b ]
+      res += double_hex(nr)
+    when "ld hl"
+      res = [ 0x2a ]
+      res += double_hex(nr)
+    end
+  else # no addressing
     nr = hex_or_int(arg)
     case instr
     when "add a" : [ 0xc6, single_hex(nr) ]
