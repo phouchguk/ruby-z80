@@ -94,7 +94,7 @@ def hex_or_int(str)
     str[2, str.length - 1].to_i(16)
   elsif str.end_with?("h")
     str[0, str.length - 1].to_i(16)
-  elsif str.index(/[abcdef]/) || str.start_with?("0")
+  elsif str.index(/[abcdef]/) || (str.length % 2 == 0 && str.start_with?("0"))
     str.to_i(16)
   else
     str.to_i
