@@ -154,6 +154,66 @@ def instr_double(instr, arg)
     case instr
     when "add a" : [ 0xc6, single_hex(nr) ]
     when "adc a" : [ 0xce, single_hex(nr) ]
+    when "call"
+      res = [ 0xcd ]
+      res += double_hex(nr)
+    when "call nz"
+      res = [ 0xc4 ]
+      res += double_hex(nr)
+    when "call z"
+      res = [ 0xcc ]
+      res += double_hex(nr)
+    when "call nc"
+      res = [ 0xd4 ]
+      res += double_hex(nr)
+    when "call c"
+      res = [ 0xdc ]
+      res += double_hex(nr)
+    when "call po"
+      res = [ 0xe4 ]
+      res += double_hex(nr)
+    when "call pe"
+      res = [ 0xec ]
+      res += double_hex(nr)
+    when "call p"
+      res = [ 0xf4 ]
+      res += double_hex(nr)
+    when "call m"
+      res = [ 0xfc ]
+      res += double_hex(nr)
+    when "cp" : [ 0xfe, single_hex(nr) ]
+    when "jp"
+      res = [ 0xc3 ]
+      res += double_hex(nr)
+    when "jp nz"
+      res = [ 0xc2 ]
+      res += double_hex(nr)
+    when "jp z"
+      res = [ 0xca ]
+      res += double_hex(nr)
+    when "jp nc"
+      res = [ 0xd2 ]
+      res += double_hex(nr)
+    when "jp c"
+      res = [ 0xda ]
+      res += double_hex(nr)
+    when "jp po"
+      res = [ 0xe2 ]
+      res += double_hex(nr)
+    when "jp pe"
+      res = [ 0xea ]
+      res += double_hex(nr)
+    when "jp p"
+      res = [ 0xf2 ]
+      res += double_hex(nr)
+    when "jp m"
+      res = [ 0xfa ]
+      res += double_hex(nr)
+    when "jr" : [ 0x18, single_hex(nr) ]
+    when "jr nz" : [ 0x20, single_hex(nr) ]
+    when "jr z" : [ 0x28, single_hex(nr) ]
+    when "jr nc" : [ 0x30, single_hex(nr) ]
+    when "jr c" : [ 0x38, single_hex(nr) ]
     when "ld a" : [ 0x3e, single_hex(nr) ]
     when "ld b" : [ 0x06, single_hex(nr) ]
     when "ld bc"
@@ -204,6 +264,14 @@ def instr_single(instr)
     when "add hl,hl" : 0x29
     when "add hl,sp" : 0x39
     when "ccf" : 0x3f
+    when "cp a" : 0xbf
+    when "cp b" : 0xb8
+    when "cp c" : 0xb9
+    when "cp d" : 0xba
+    when "cp e" : 0xbb
+    when "cp h" : 0xbc
+    when "cp l" : 0xbd
+    when "cp (hl)" : 0xbe
     when "dec a" : 0x3d
     when "dec b" : 0x05
     when "dec bc" : 0x0b
@@ -299,6 +367,14 @@ def instr_single(instr)
     when "ldd" : [ 0xed, 0xa8 ]
     when "lddr" : [ 0xed, 0xb8 ]
     when "ret" : 0xc9
+    when "ret nz" : 0xc0
+    when "ret z" : 0xc8
+    when "ret nc" : 0xd0
+    when "ret c" : 0xd8
+    when "ret po" : 0xe0
+    when "ret pe" : 0xe8
+    when "ret p" : 0xf0
+    when "ret m" : 0xf8
     when "pop af" : 0xf1
     when "pop bc" : 0xc1
     when "pop de" : 0xd1
