@@ -1,0 +1,6 @@
+org 30000
+
+# this is the start of the program
+start:
+LD BC, 42
+RET
