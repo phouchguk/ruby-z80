@@ -1,0 +1,9 @@
+org 61440
+
+start:
+LD DE, 0x3385
+LD HL, 0x7BC7
+ADD HL, DE
+LD B, H
+LD C, L
+RET
