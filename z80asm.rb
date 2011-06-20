@@ -4,15 +4,13 @@
 puts "What file should I compile? Usage z80asm file_name" if ARGV.length == 0
 
 def main
-  go = true
-  got_org = false
-  org = 0
+  org = -1 # throw an error if we start using jumps and we haven't got org
   line_nr = 0
   ip = 0
   code = []
 
   File.open(ARGV[0], "r") do |file|
-    while(go && line = file.gets)
+    while(line = file.gets)
       line_nr += 1
 
       line.strip!
@@ -22,9 +20,14 @@ def main
       next if line.start_with?("#") or line.empty?
       
       # deal with org line
-      if !got_org
-        got_org, org = parse_org(line)
-        go = got_org
+      if line.start_with?("org")
+        parts = line.split(" ")
+        if parts.length != 2
+          throw "Must be org and a memory address i.e. org 30000"
+        else
+          org = hex_or_int(parts[1])
+        end 
+       
         next
       end
 
@@ -91,6 +94,8 @@ def instr_double(instr, arg)
   else
     nr = hex_or_int(arg)
     case instr
+    when "add a" : [ 0xc6, single_hex(nr) ]
+    when "adc a" : [ 0xce, single_hex(nr) ]
     when "ld a" : [ 0x3e, single_hex(nr) ]
     when "ld b" : [ 0x06, single_hex(nr) ]
     when "ld bc"
