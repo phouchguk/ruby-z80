@@ -1,0 +1,19 @@
+ld a,(bc)
+ld a,(de)
+ld a,(hl)
+ld b,(hl)
+ld c,(hl)
+ld d,(hl)
+ld e,(hl)
+ld h,(hl)
+ld l,(hl)
+
+ld (bc),a
+ld (de),a
+ld (hl),a
+ld (hl),b
+ld (hl),c
+ld (hl),d
+ld (hl),e
+ld (hl),h
+ld (hl),l

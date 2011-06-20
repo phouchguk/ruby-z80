@@ -3,6 +3,8 @@
 # test we have a filename
 puts "What file should I compile? Usage z80asm file_name" if ARGV.length == 0
 
+$regs = ["a", "b", "bc", "c", "d", "de", "e", "h", "hl", "l"]
+
 def main
   org = -1 # throw an error if we start using jumps and we haven't got org
   line_nr = 0
@@ -46,7 +48,7 @@ def main
         res = instr_single(parts[0])
       when 2
         # is the second part an argument or part of a single instruction i.e. LD A,B
-        if !include_addr?(parts[0]) && ["a", "b", "bc", "c", "d", "de", "e", "h", "hl", "l"].include?(parts[1])
+        if !include_addr?(parts[0]) && ($regs.include?(parts[1]) || $regs.include?(between_parens(parts[1])))
           res = instr_single(parts.join(",")) # remove whitespace
         else
           res = instr_double(parts[0], parts[1])
@@ -65,6 +67,17 @@ def main
 
   #puts code.map{|x| x.to_s(16).rjust(2, '0')}.join(" ")
   print code.pack("C*")
+end
+
+def between_parens(str)
+  op = str.index("(")
+  cp = str.index(")")
+
+  if op && cp
+    str[op + 1, cp - op - 1]
+  else
+    nil
+  end
 end
 
 # nr must be an int
@@ -88,8 +101,9 @@ def hex_or_int(str)
   end
 end
 
+# only true if direct address (not via reg)
 def include_addr?(str)
-  str.index("(") && str.index(")")
+  str.index("(") && str.index(")") && !$regs.include?(between_parens(str))
 end
 
 def instr_double(instr, arg)
@@ -199,6 +213,18 @@ def instr_single(instr)
     when "inc h" : 0x24
     when "inc hl" : 0x23
     when "inc l" : 0x2c
+    when "ld (bc),a" : 0x02
+    when "ld (de),a" : 0x12
+    when "ld (hl),a" : 0x77
+    when "ld (hl),b" : 0x70
+    when "ld (hl),c" : 0x71
+    when "ld (hl),d" : 0x72
+    when "ld (hl),e" : 0x73
+    when "ld (hl),h" : 0x74
+    when "ld (hl),l" : 0x75
+    when "ld a,(bc)" : 0x0a
+    when "ld a,(de)" : 0x1a
+    when "ld a,(hl)" : 0x7e
     when "ld a,a" : 0x7f
     when "ld a,b" : 0x78
     when "ld a,c" : 0x79
@@ -206,6 +232,7 @@ def instr_single(instr)
     when "ld a,e" : 0x7b
     when "ld a,h" : 0x7c
     when "ld a,l" : 0x7d
+    when "ld b,(hl)" : 0x46
     when "ld b,a" : 0x47
     when "ld b,b" : 0x40
     when "ld b,c" : 0x41
@@ -213,6 +240,7 @@ def instr_single(instr)
     when "ld b,e" : 0x43
     when "ld b,h" : 0x44
     when "ld b,l" : 0x45
+    when "ld c,(hl)" : 0x4e
     when "ld c,a" : 0x4f
     when "ld c,b" : 0x48
     when "ld c,c" : 0x49
@@ -220,6 +248,7 @@ def instr_single(instr)
     when "ld c,e" : 0x4b
     when "ld c,h" : 0x4c
     when "ld c,l" : 0x4d
+    when "ld d,(hl)" : 0x56
     when "ld d,a" : 0x57
     when "ld d,b" : 0x50
     when "ld d,c" : 0x51
@@ -227,6 +256,7 @@ def instr_single(instr)
     when "ld d,e" : 0x53
     when "ld d,h" : 0x54
     when "ld d,l" : 0x55
+    when "ld e,(hl)" : 0x5e
     when "ld e,a" : 0x5f
     when "ld e,b" : 0x58
     when "ld e,c" : 0x59
@@ -234,6 +264,7 @@ def instr_single(instr)
     when "ld e,e" : 0x5b
     when "ld e,h" : 0x5c
     when "ld e,l" : 0x5d
+    when "ld h,(hl)" : 0x66
     when "ld h,a" : 0x67
     when "ld h,b" : 0x60
     when "ld h,c" : 0x61
@@ -241,6 +272,7 @@ def instr_single(instr)
     when "ld h,e" : 0x63
     when "ld h,h" : 0x64
     when "ld h,l" : 0x65
+    when "ld l,(hl)" : 0x6e
     when "ld l,a" : 0x6f
     when "ld l,b" : 0x68
     when "ld l,c" : 0x69
