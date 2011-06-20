@@ -2,5 +2,9 @@ org 30000
 
 # this is the start of the program
 start:
-LD BC, 42
+LD A, 0xff
+LD B, 0x01
+ADD A, B
+LD B, 0x00
+LD C, A
 RET

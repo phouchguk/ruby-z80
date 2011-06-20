@@ -36,21 +36,26 @@ def main
       # parse instruction
       parts = line.split(",").map(&:strip)
       nr_parts = parts.length
+      res = nil
 
       case nr_parts
       when 1
-        code << instr_single(parts[0])
-        ip += 1
+        res = instr_single(parts[0])
       when 2
         # is the second part an argument or part of a single instruction i.e. LD A,B
-        if ["a", "b", "c", "d", "e", "h", "l"].include?(parts[1])
-          code << instr_single(parts.join(",")) # remove whitespace
-          ip += 1
+        if ["a", "b", "bc", "c", "d", "de", "e", "h", "hl", "l"].include?(parts[1])
+          res = instr_single(parts.join(",")) # remove whitespace
         else
           res = instr_double(parts[0], parts[1])
-          ip += res.length
-          code += res
         end
+      end
+
+      if res.kind_of?(Array)
+        ip += res.length
+        code += res            
+      else
+        code << res
+        ip += 1
       end
     end
   end
@@ -82,35 +87,48 @@ def instr_double(instr, arg)
   else
     nr = hex_or_int(arg)
     case instr
-    when "ld a"
-      res = [ 0x3e, single_hex(nr) ]
-    when "ld b"
-      res = [ 0x06, single_hex(nr) ]
+    when "ld a" : [ 0x3e, single_hex(nr) ]
+    when "ld b" : [ 0x06, single_hex(nr) ]
     when "ld bc"
       res = [ 0x01 ]
       res += double_hex(nr)
-    when "ld c"
-      res = [ 0x0e, single_hex(nr) ]
-    when "ld d"
-      res = [ 0x16, single_hex(nr) ]
+    when "ld c" : [ 0x0e, single_hex(nr) ]
+    when "ld d" : [ 0x16, single_hex(nr) ]
     when "ld de"
       res = [ 0x11 ]
       res += double_hex(nr)
-    when "ld e"
-      res = [ 0x1e, single_hex(nr) ]
-    when "ld h"
-      res = [ 0x26, single_hex(nr) ]
+    when "ld e" : [ 0x1e, single_hex(nr) ]
+    when "ld h" : [ 0x26, single_hex(nr) ]
     when "ld hl"
       res = [ 0x21 ]
       res += double_hex(nr)
-    when "ld l"
-      res = [ 0x2e, single_hex(nr) ]
+    when "ld l" : [ 0x2e, single_hex(nr) ]
     end
   end
 end
 
 def instr_single(instr)
   case instr
+    when "adc a,a" : 0x8f
+    when "adc a,b" : 0x88
+    when "adc a,c" : 0x89
+    when "adc a,d" : 0x8a
+    when "adc a,e" : 0x8b
+    when "adc a,h" : 0x8c
+    when "adc a,l" : 0x8d
+    when "adc hl,bc" : [ 0xed, 0x4a ]
+    when "adc hl,de" : [ 0xed, 0x5a ]
+    when "adc hl,hl" : [ 0xed, 0x6a ]
+    when "add a,a" : 0x87
+    when "add a,b" : 0x80
+    when "add a,c" : 0x81
+    when "add a,d" : 0x82
+    when "add a,e" : 0x83
+    when "add a,h" : 0x84
+    when "add a,l" : 0x85
+    when "add hl,bc" : 0x09
+    when "add hl,de" : 0x19
+    when "add hl,hl" : 0x29
     when "ld a,a" : 0x7f
     when "ld a,b" : 0x78
     when "ld a,c" : 0x79
