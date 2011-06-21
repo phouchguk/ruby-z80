@@ -1,4 +1,4 @@
-ld a,(bc)
+ld a,(bc) ; this is a comment
 ld a,(de)
 ld a,(hl)
 ld b,(hl)

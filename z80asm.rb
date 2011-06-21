@@ -15,15 +15,19 @@ def main
     while(line = file.gets)
       line_nr += 1
 
-      line.strip!
-      line.downcase!
+      # strip comments
+      cmd, comment = line.split(";")
       
-      # ignore comments and blank lines
-      next if line.start_with?("#") or line.empty?
+      cmd.strip!
+
+      # ignore blank cmds
+      next if cmd.empty?
+
+      cmd.downcase!
       
       # deal with org line
-      if line.start_with?("org")
-        parts = line.split(" ")
+      if cmd.start_with?("org")
+        parts = cmd.split(" ")
         if parts.length != 2
           throw "Must be org and a memory address i.e. org 30000"
         else
@@ -34,12 +38,12 @@ def main
       end
 
       # deal wth labels
-      if line.end_with?(":")
+      if cmd.end_with?(":")
         next # deal with this later
       end
 
       # parse instruction
-      parts = line.split(",").map(&:strip)
+      parts = cmd.split(",").map(&:strip)
       nr_parts = parts.length
       res = nil
 
