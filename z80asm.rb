@@ -3,13 +3,15 @@
 # test we have a filename
 puts "What file should I compile? Usage z80asm file_name" if ARGV.length == 0
 
-$regs = ["a", "b", "bc", "c", "d", "de", "e", "h", "hl", "l"]
+$regs = ["a", "af", "b", "bc", "c", "d", "de", "e", "h", "hl", "l", "sp"]
+$sfxs = ["nz", "z", "nc", "c", "po", "pe", "p", "m"]
 
 def main
   org = -1 # throw an error if we start using jumps and we haven't got org
   line_nr = 0
   ip = 0
   code = []
+  vars = {}
 
   File.open(ARGV[0], "r") do |file|
     while(line = file.gets)
@@ -23,8 +25,20 @@ def main
       # ignore blank cmds
       next if cmd.empty?
 
+      # log variables
+      if cmd.start_with?("$")
+        parts = cmd.split(" ").map(&:strip)
+        vars[parts[0]] = parts[1]
+        next
+      end
+
+      # variable substitution
+      vars.keys.each do |var|
+        cmd.sub!(var, vars[var])
+      end
+
       cmd.downcase!
-      
+
       # deal with org line
       if cmd.start_with?("org")
         parts = cmd.split(" ")
@@ -38,7 +52,7 @@ def main
       end
 
       # deal wth labels
-      if cmd.end_with?(":")
+      if cmd.start_with?(":")
         next # deal with this later
       end
 
@@ -47,12 +61,26 @@ def main
       nr_parts = parts.length
       res = nil
 
+      # check for 'single' cmds with a numeric arg i.e. cp 32h
+      # ignore anything with addressing in first part of cmd
+      if !include_addr?(parts[0])
+        sub_parts = parts[0].split(" ").map(&:strip)
+        if sub_parts.length > 1
+          # check if not reg or cmd suffix
+          if !$regs.include?(sub_parts[1]) && !$sfxs.include?(sub_parts[1])
+            parts[0] = sub_parts[0]
+            parts[1] = sub_parts[1]
+            nr_parts = 2
+          end
+        end
+      end
+
       case nr_parts
       when 1
         res = instr_single(parts[0])
       when 2
         # is the second part an argument or part of a single instruction i.e. LD A,B
-        if !include_addr?(parts[0]) && ($regs.include?(parts[1]) || $regs.include?(between_parens(parts[1])))
+        if !include_dir_addr?(parts[0]) && ($regs.include?(parts[1]) || $regs.include?(between_parens(parts[1])))
           res = instr_single(parts.join(",")) # remove whitespace
         else
           res = instr_double(parts[0], parts[1])
@@ -105,9 +133,13 @@ def hex_or_int(str)
   end
 end
 
-# only true if direct address (not via reg)
 def include_addr?(str)
-  str.index("(") && str.index(")") && !$regs.include?(between_parens(str))
+  str.index("(") && str.index(")")
+end
+
+# only true if direct address (nr, not via reg)
+def include_dir_addr?(str)
+  include_addr?(str) && !$regs.include?(between_parens(str))
 end
 
 def instr_double(instr, arg)
