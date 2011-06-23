@@ -11,7 +11,10 @@ def main
   line_nr = 0
   ip = 0
   code = []
+  labels = {} # label is key to a ip location
   vars = {}
+  rel_addrs = {} # relative address locations - label is key to array if ips
+  abs_addrs = {} # absolute address locations - label is key to array if ips
 
   File.open(ARGV[0], "r") do |file|
     while(line = file.gets)
@@ -51,9 +54,21 @@ def main
         next
       end
 
-      # deal wth labels
+      # log label locations (current ip, points to instruction after this one)
       if cmd.start_with?(":")
-        next # deal with this later
+        labels[extract_label(cmd)] = ip
+        next
+      end
+
+      # check for label references
+      if include_label_ref?(cmd)
+        if cmd.start_with?("jp")
+          
+        elsif cmd.start_with?("jr")
+          
+        else
+          throw "only jp* and jr* commands can contain label references"
+        end
       end
 
       # parse instruction
@@ -62,7 +77,7 @@ def main
       res = nil
 
       # check for 'single' cmds with a numeric arg i.e. cp 32h
-      # ignore anything with addressing in first part of cmd
+      # ignore anything with any addressing in first part of cmd
       if !include_addr?(parts[0])
         sub_parts = parts[0].split(" ").map(&:strip)
         if sub_parts.length > 1
@@ -73,6 +88,27 @@ def main
             nr_parts = 2
           end
         end
+      end
+
+      # check for label references
+      if include_label_ref?(parts[0])
+        throw "only command args can contain label references"
+      end
+
+      if parts[1] && include_label_ref?(parts[1])
+        lbl = extract_label(parts[1])
+        if parts[0].start_with?("jp") || parts[0].start_with?("call") 
+          abs_addrs[lbl] ||= []
+          abs_addrs[lbl] << ip
+        elsif parts[0].start_with?("jr")
+          rel_addrs[lbl] ||= []
+          rel_addrs[lbl] << ip
+        else
+          throw "only call*, jp* and jr* commands can contain label references"
+        end
+
+        # set addr arg to 0 for now, will be adjusted to label loc at end
+        parts[1] = "0"
       end
 
       case nr_parts
@@ -97,8 +133,34 @@ def main
     end
   end
 
+  labels.keys.each do |key|
+    throw "you must specify org if you want to use absolute reference labels" if abs_addrs.keys.length > 0 && org == -1
+
+    if abs_addrs[key]
+      abs_addrs[key].each do |x|
+        # change the instr address arg to be the address the label points to
+        code[x + 1], code [x + 2] = double_hex(org + labels[key])
+      end
+    end
+
+    if rel_addrs[key]
+      rel_addrs[key].each do |x|
+        # Change the instr address arg to be the difference between the 
+        # *next* instruction address and the address the label points to.
+        # Assuming jump instruction is always 2 bytes.
+        code[x + 1] = as_twos(labels[key] - (x + 2))
+      end
+    end
+  end
+
   #puts code.map{|x| x.to_s(16).rjust(2, '0')}.join(" ")
   print code.pack("C*")
+end
+
+def as_twos(nr)
+  throw "nr must be between -128 and 127" if nr < -128 || nr > 127
+  return nr if nr > -1 
+  256 + nr
 end
 
 def between_parens(str)
@@ -121,6 +183,10 @@ def double_hex(nr)
   end
 end
 
+def extract_label(str)
+  str[1, str.length - 1].to_sym
+end
+
 def hex_or_int(str)
   if str.start_with?("0x") 
     str[2, str.length - 1].to_i(16)
@@ -140,6 +206,10 @@ end
 # only true if direct address (nr, not via reg)
 def include_dir_addr?(str)
   include_addr?(str) && !$regs.include?(between_parens(str))
+end
+
+def include_label_ref?(str)
+  str.index(":")
 end
 
 def instr_double(instr, arg)

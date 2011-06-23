@@ -1,3 +1,5 @@
+org 61440
+		
 $count 50
 $spare 5cb0
 
@@ -8,6 +10,6 @@ ld a,0			; begin our count to 50
 inc a			; inc the nr (push 1 first)
 push af			; push our nr on the stack
 cp $count		; are we at count yet?
-jr nz, 0		; loop if we're not
+jr nz, :loop	; back to :loop if we're not
 ld sp,($spare)	; restore the stack pointer
 ret				; back to basic
