@@ -158,6 +158,7 @@ def instr_double(instr, arg)
       res = single_hex(nr)
     when "defm"
       res = arg.bytes.to_a
+    when "djnz" : [ 0x10, single_hex(nr) ]
     when "jp"
       res = [ 0xc3 ]
       res += double_hex(nr)
@@ -763,11 +764,11 @@ def main
         if parts[0].start_with?("jp") || parts[0].start_with?("call") 
           abs_addrs[lbl] ||= []
           abs_addrs[lbl] << ip
-        elsif parts[0].start_with?("jr")
+        elsif parts[0].start_with?("jr") || parts[0].start_with?("djnz") 
           rel_addrs[lbl] ||= []
           rel_addrs[lbl] << ip
         else
-          throw "only call*, jp* and jr* commands can contain label references"
+          throw "only call, djnz, jp* and jr* commands can contain label references"
         end
 
         # set addr arg to 0 for now, will be adjusted to label loc at end
