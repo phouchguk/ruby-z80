@@ -40,7 +40,7 @@ def main
         cmd.sub!(var, vars[var])
       end
 
-      cmd.downcase!
+      cmd.downcase! unless cmd.start_with?("defm")
 
       # deal with org line
       if cmd.start_with?("org")
@@ -67,21 +67,23 @@ def main
 
       # check for 'single' cmds with a numeric arg i.e. cp 32h
       # ignore anything with any addressing in first part of cmd
-      if !include_addr?(parts[0])
-        sub_parts = parts[0].split(" ").map(&:strip)
-        if sub_parts.length > 1
-          # check if not reg or cmd suffix
-          if !$regs.include?(sub_parts[1]) && !$sfxs.include?(sub_parts[1])
-            parts[0] = sub_parts[0]
-            parts[1] = sub_parts[1]
-            nr_parts = 2
+      if parts[0][0, 3] != "rst"
+        if !include_addr?(parts[0]) || parts[0][0, 3] == "def" || parts[0][0, 4] == "jp :" || parts[0][0, 4] == "jr :"
+          sub_parts = parts[0].split(" ").map(&:strip)
+          if sub_parts.length > 1
+            # check if not reg or cmd suffix
+            if !$regs.include?(sub_parts[1]) && !$sfxs.include?(sub_parts[1])
+              parts[0] = sub_parts[0]
+              parts[1] = sub_parts[0] == "defm" ? sub_parts[1..sub_parts.length - 1].join(" ") : sub_parts[1]
+              nr_parts = 2
+            end
           end
         end
       end
 
       # check for label references
       if include_label_ref?(parts[0])
-        throw "only command args can contain label references"
+        throw "only command args can contain label references '#{parts[0]}'"
       end
 
       if parts[1] && include_label_ref?(parts[1])
@@ -141,9 +143,12 @@ def main
       end
     end
   end
-
-  #puts code.map{|x| x.to_s(16).rjust(2, '0')}.join(" ")
-  print code.pack("C*")
+  
+  if ARGV[1]
+    puts code.map{|x| x.to_s(16).rjust(2, '0')}.join(" ")
+  else
+    print code.pack("C*")
+  end
 end
 
 def as_twos(nr)
@@ -152,15 +157,25 @@ def as_twos(nr)
   256 + nr
 end
 
-def between_parens(str)
-  op = str.index("(")
-  cp = str.index(")")
+def between(str, a, b)
+  op = str.index(a)
+  if op
+    cp = str.index(b, op + 1)
 
-  if op && cp
-    str[op + 1, cp - op - 1]
-  else
-    nil
+    if cp
+      str[op + 1, cp - op - 1]
+    else
+      nil
+    end
   end
+end
+
+def between_parens(str)
+  between(str, "(", ")")
+end
+
+def between_quotes(str)
+  between(str, '"', '"')
 end
 
 # nr must be an int
@@ -177,7 +192,9 @@ def extract_label(str)
 end
 
 def hex_or_int(str)
-  if str.start_with?("0x") 
+  if str.start_with?('"') 
+    between_quotes(str).bytes.to_a[0] # only look at first char
+  elsif str.start_with?("0x") 
     str[2, str.length - 1].to_i(16)
   elsif str.end_with?("h")
     str[0, str.length - 1].to_i(16)
@@ -211,7 +228,7 @@ def instr_double(instr, arg)
       nr = hex_or_int(instr[instr_op + 1, instr_cp - instr_op - 1])
       case arg
       when "a"
-        res = [ 0x3a ]
+        res = [ 0x32 ]
         res += double_hex(nr)
       when "bc"
         res = [ 0xed, 0x43 ]
@@ -277,6 +294,10 @@ def instr_double(instr, arg)
       res = [ 0xfc ]
       res += double_hex(nr)
     when "cp" : [ 0xfe, single_hex(nr) ]
+    when "defb"
+      res = single_hex(nr)
+    when "defm"
+      res = arg.bytes.to_a
     when "jp"
       res = [ 0xc3 ]
       res += double_hex(nr)
@@ -655,6 +676,7 @@ def instr_single(instr)
     when "rrc h" : [ 0xcb, 0x0c ]
     when "rrc l" : [ 0xcb, 0x0d ]
     when "rrc (hl)" : [ 0xcb, 0x0e ]
+    when "rst 10" : 0xd7
     when "sbc a,a" : 0x9f
     when "sbc a,b" : 0x98
     when "sbc a,c" : 0x99

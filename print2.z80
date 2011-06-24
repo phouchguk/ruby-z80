@@ -1,0 +1,30 @@
+org 61440
+
+$tvflag 5c3c
+
+:start
+xor a
+ld ($tvflag),a
+call :s_print
+defm  12345678
+defm 1 @ @ @ @1
+defm 2@ @ @ @ 2
+defm 3 @ @ @ @3
+defm 4@ @ @ @ 4
+defm 5 @ @ @ @5
+defm 6@ @ @ @ 6
+defm 7 @ @ @ @7
+defm 8@ @ @ @ 8
+defm  12345678
+defb 00
+ret
+
+:s_print
+pop hl
+ld a,(hl)
+inc hl
+push hl
+and a
+ret z
+rst 10
+jr :s_print

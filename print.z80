@@ -1,0 +1,11 @@
+org 61440
+
+$tvflag 5c3c
+
+:start
+xor a
+ld ($tvflag),a
+:loop
+ld a,"*"
+rst 10
+jr :loop
