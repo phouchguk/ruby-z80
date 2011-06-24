@@ -1,6 +1,8 @@
 org 61440
 
 $tvflag 5c3c
+defr @ 90h
+
 
 :start
 xor a

@@ -28,6 +28,12 @@ def between_quotes(str)
   between(str, '"', '"')
 end
 
+def defr_sub(code, subs)
+  code.map do |x| 
+    subs.has_key?(x) ? subs[x] : x 
+  end
+end
+
 # nr must be an int
 def double_hex(nr)
   if nr < 256
@@ -657,6 +663,7 @@ def main
   code = []
   labels = {} # label is key to a ip location
   vars = {}
+  defrs = {} # hex replacements for defm instructions i.e. swap @ for 90h
   rel_addrs = {} # relative address locations - label is key to array if ips
   abs_addrs = {} # absolute address locations - label is key to array if ips
 
@@ -678,6 +685,13 @@ def main
         vars[parts[0]] = parts[1]
         next
       end
+
+      # log defm replacements
+      if cmd.start_with?("defr")
+        parts = cmd.split(" ").map(&:strip)
+        defrs[parts[1].bytes.to_a[0]] = hex_or_int(parts[2])
+        next
+      end      
 
       # variable substitution
       vars.keys.each do |var|
@@ -762,6 +776,7 @@ def main
           res = instr_single(parts.join(",")) # remove whitespace
         else
           res = instr_double(parts[0], parts[1])
+          res = defr_sub(res, defrs) if parts[0] == "defm" # do defm substitutions
         end
       end
 
