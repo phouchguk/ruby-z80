@@ -358,6 +358,14 @@ def instr_single(instr)
     when "add hl,de" : 0x19
     when "add hl,hl" : 0x29
     when "add hl,sp" : 0x39
+    when "and a" : 0xa7
+    when "and b" : 0xa0
+    when "and c" : 0xa1
+    when "and d" : 0xa2
+    when "and e" : 0xa3
+    when "and h" : 0xa4
+    when "and l" : 0xa5
+    when "and (hl)" : 0xa6
     when "ccf" : 0x3f
     when "cp a" : 0xbf
     when "cp b" : 0xb8
@@ -367,6 +375,7 @@ def instr_single(instr)
     when "cp h" : 0xbc
     when "cp l" : 0xbd
     when "cp (hl)" : 0xbe
+    when "cpl" : 0x2f
     when "dec a" : 0x3d
     when "dec b" : 0x05
     when "dec bc" : 0x0b
@@ -461,6 +470,14 @@ def instr_single(instr)
     when "ldir" : [ 0xed, 0xb0 ]
     when "ldd" : [ 0xed, 0xa8 ]
     when "lddr" : [ 0xed, 0xb8 ]
+    when "or a" : 0xb7
+    when "or b" : 0xb0
+    when "or c" : 0xb1
+    when "or d" : 0xb2
+    when "or e" : 0xb3
+    when "or h" : 0xb4
+    when "or l" : 0xb5
+    when "or (hl)" : 0xb6
     when "ret" : 0xc9
     when "ret nz" : 0xc0
     when "ret z" : 0xc8
@@ -497,6 +514,14 @@ def instr_single(instr)
     when "sub e" : 0x93
     when "sub h" : 0x94
     when "sub l" : 0x95
+    when "xor a" : 0xaf
+    when "xor b" : 0xa8
+    when "xor c" : 0xa9
+    when "xor d" : 0xaa
+    when "xor e" : 0xab
+    when "xor h" : 0xac
+    when "xor l" : 0xad
+    when "xor (hl)" : 0xae
   else
     throw "Unrecognised instruction #{instr}"
   end
