@@ -75,13 +75,13 @@ def include_label_ref?(str)
 end
 
 def instr_double(instr, arg)
-  instr_op = instr.index("(") # checking for address in instruction
-  instr_cp = instr.index(")")
-
-  if instr_op && instr_cp # address in instruction
+  if include_dir_addr?(instr) # address in instruction
     if instr.start_with?("ld")
+      #instr_op = instr.index("(") # checking for address in instruction
+      #instr_cp = instr.index(")")
+
       # extract the address
-      nr = hex_or_int(instr[instr_op + 1, instr_cp - instr_op - 1])
+      nr = hex_or_int(between_parens(instr)) #instr[instr_op + 1, instr_cp - instr_op - 1])
       case arg
       when "a"
         res = [ 0x32 ]
@@ -98,6 +98,8 @@ def instr_double(instr, arg)
       when "sp"
         res = [ 0xed, 0x73 ]
         res += double_hex(nr)
+      else
+        throw "Unrecognised instruction #{instr}"
       end
     end
   elsif arg.start_with?("(") && arg.end_with?(")") # address in arg
@@ -116,6 +118,8 @@ def instr_double(instr, arg)
     when "ld sp"
       res = [ 0xed, 0x7b ]
       res += double_hex(nr)
+    else
+      throw "Unrecognised instruction #{instr}"
     end
   else # no addressing
     nr = hex_or_int(arg)
@@ -186,6 +190,7 @@ def instr_double(instr, arg)
     when "jr z" : [ 0x28, single_hex(nr) ]
     when "jr nc" : [ 0x30, single_hex(nr) ]
     when "jr c" : [ 0x38, single_hex(nr) ]
+    when "ld (hl)" : [ 0x36, single_hex(nr) ]
     when "ld a" : [ 0x3e, single_hex(nr) ]
     when "ld b" : [ 0x06, single_hex(nr) ]
     when "ld bc"
@@ -207,6 +212,8 @@ def instr_double(instr, arg)
       res += double_hex(nr)
     when "sbc a" : [ 0xde, single_hex(nr) ]
     when "sub" : [ 0xd6, single_hex(nr) ]
+    else
+      throw "Unrecognised instruction #{instr}"
     end
   end
 end
