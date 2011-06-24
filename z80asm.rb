@@ -40,7 +40,7 @@ def main
         cmd.sub!(var, vars[var])
       end
 
-      cmd.downcase! unless cmd.start_with?("defm")
+      cmd = lower_case(cmd)
 
       # deal with org line
       if cmd.start_with?("org")
@@ -184,6 +184,30 @@ def double_hex(nr)
     [ nr, 0 ]
   else
     [ nr % 256, nr / 256 ]
+  end
+end
+
+# puts string into lower case ignoring defm and letters in quotes 
+# presumes a single set of quotes per line
+def lower_case(str)
+  len = str.length
+
+  if str.start_with?("defm")
+    return str[0, 4].downcase + str[4, len - 1] 
+  end
+
+  a = str.index('"')
+
+  if a
+    b = str.index('"', a + 1)
+    throw "unclosed string quote" if b.nil?
+    
+    c = str.index('"', b + 1)
+    throw "can only have 1 quoted string per instruction" unless c.nil?
+    
+    str[0, a].downcase + str[a, b - a + 1] + str[b + 1, len - b - 1].downcase
+  else
+    str.downcase
   end
 end
 
@@ -771,10 +795,6 @@ def instr_single(instr)
   else
     throw "Unrecognised instruction #{instr}"
   end
-end
-
-def parse_label(line)
-
 end
 
 def parse_org(line)
