@@ -60,17 +60,6 @@ def main
         next
       end
 
-      # check for label references
-      if include_label_ref?(cmd)
-        if cmd.start_with?("jp")
-          
-        elsif cmd.start_with?("jr")
-          
-        else
-          throw "only jp* and jr* commands can contain label references"
-        end
-      end
-
       # parse instruction
       parts = cmd.split(",").map(&:strip)
       nr_parts = parts.length

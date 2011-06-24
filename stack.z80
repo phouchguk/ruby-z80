@@ -1,15 +1,19 @@
 org 61440
 		
-$count 50
+$count 5
 $spare 5cb0
 
 :start
+ld a,0			; begin our count to $count
+call :sub       ; call useless subroutine to test call label
+ret				; back to basic
+
+:sub			; 'sub' subroutine
 ld ($spare),sp	; store sp for later restoration
-ld a,0			; begin our count to 50
-:loop			; start of the loop
+:loop			; start of the loop 
 inc a			; inc the nr (push 1 first)
 push af			; push our nr on the stack
 cp $count		; are we at count yet?
 jr nz, :loop	; back to :loop if we're not
 ld sp,($spare)	; restore the stack pointer
-ret				; back to basic
+ret
