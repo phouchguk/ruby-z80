@@ -1,4 +1,4 @@
-$regs = ["a", "af", "b", "bc", "c", "d", "de", "e", "h", "hl", "l", "sp"]
+$regs = ["a", "a'", "af", "af'", "b", "b'", "bc", "bc'", "c", "c'", "d", "d'", "de", "de'", "e", "e'", "h", "h'", "hl", "hl'", "l", "l'", "sp", "ix", "iy"]
 $sfxs = ["nz", "z", "nc", "c", "po", "pe", "p", "m"]
 
 def as_twos(nr)
@@ -326,7 +326,12 @@ def instr_single(instr)
     when "cp h" : 0xbc
     when "cp l" : 0xbd
     when "cp (hl)" : 0xbe
+    when "cpi" : [ 0xed, 0xa1 ]
+    when "cpir" : [ 0xed, 0xb1 ]
+    when "cpd" : [ 0xed, 0xa9 ]
+    when "cpdr" : [ 0xed, 0xb9 ]
     when "cpl" : 0x2f
+    when "daa" : 0x27
     when "dec a" : 0x3d
     when "dec b" : 0x05
     when "dec bc" : 0x0b
@@ -338,6 +343,18 @@ def instr_single(instr)
     when "dec hl" : 0x2b
     when "dec l" : 0x2d
     when "dec sp" : 0x3b
+    when "di" : 0xf3
+    when "ei" : 0xfb
+    when "ex af,af'" : 0x08
+    when "ex de,hl" : 0xeb
+    when "ex (sp),hl" : 0xe3
+    when "ex (sp),ix" : [ 0xdd, 0xe3 ]
+    when "ex (sp),iy" : [ 0xfd, 0xe3 ]
+    when "exx" : 0xd9
+    when "halt" : 0x76
+    when "im 0" : [ 0xed, 0x46 ]
+    when "im 1" : [ 0xed, 0x56 ]
+    when "im 2" : [ 0xed, 0x5e ]
     when "inc a" : 0x3c
     when "inc b" : 0x04
     when "inc bc" : 0x03
@@ -639,6 +656,11 @@ def instr_single(instr)
   end
 end
 
+# Some instructions include a number i.e. rst 08, im 0.  Need to treat as single.
+def instr_with_nr?(instr)
+  instr[0, 4] == "rst " || instr[0, 3] == "im "
+end
+
 # puts string into lower case ignoring defm and letters in quotes 
 # presumes a single set of quotes per line
 def lower_case(str)
@@ -735,7 +757,7 @@ def main
 
       # check for 'single' cmds with a numeric arg i.e. cp 32h
       # ignore anything with any addressing in first part of cmd
-      if parts[0][0, 3] != "rst"
+      if !instr_with_nr?(parts[0])
         if !include_addr?(parts[0]) || parts[0][0, 3] == "def" || parts[0][0, 4] == "jp :" || parts[0][0, 4] == "jr :"
           sub_parts = nil
           
