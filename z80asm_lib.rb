@@ -821,7 +821,14 @@ def main
   end
   
   if ARGV[1]
-    puts code.map{|x| x.to_s(16).rjust(2, '0')}.join(" ")
+    case ARGV[1]
+    when "dump"
+      puts code.map{|x| x.to_s(16).rjust(2, '0')}.join(" ")
+    when "lbl"
+      labels.keys.each do |key|
+        puts "#{key}\t#{org + labels[key]}"
+      end
+    end
   else
     print code.pack("C*")
   end
