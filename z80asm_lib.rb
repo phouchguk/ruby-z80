@@ -105,7 +105,9 @@ def instr_double(instr, arg)
   elsif arg.start_with?("(") && arg.end_with?(")") # address in arg
     nr = hex_or_int(arg[1, arg.length - 2])
     case instr
-    when "ld a" : [ 0x3a, double_hex(nr) ]
+    when "ld a"
+      res = [ 0x3a ]
+      res += double_hex(nr)
     when "ld bc"
       res = [ 0xed, 0x4b ]
       res += double_hex(nr)
